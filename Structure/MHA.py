@@ -15,8 +15,10 @@ class MultiHeadAttention(nn.Module):
         self.q_linear = nn.Linear(embed_dim, embed_dim)
         self.k_linear = nn.Linear(embed_dim, embed_dim)
         self.v_linear = nn.Linear(embed_dim, embed_dim)
+        self.fc = nn.Linear(embed_dim, embed_dim)
 
-        self.ln = nn.LayerNorm(embed_dim)
+        self.ln1 = nn.LayerNorm(embed_dim)
+        self.ln2 = nn.LayerNorm(embed_dim)
 
         self.linear1 = nn.Linear(embed_dim, embed_dim)
         self.linear2 = nn.Linear(embed_dim, embed_dim)
@@ -49,9 +51,11 @@ class MultiHeadAttention(nn.Module):
 
         context = context.transpose(1, 2).contiguous().view(batch_size, -1, self.embed_dim)
 
-        context = self.ln(context+x)
+        context = self.fc(context)
 
-        context = self.ln(self.linear2(self.relu(self.linear1(context)))+context)
+        context = self.ln1(context+x)
+
+        context = self.ln2(self.linear2(self.relu(self.linear1(context)))+context)
 
         return context
 
