@@ -8,3 +8,6 @@ def relu(x):
 
 def tanh(x):
     return 2/(1+math.exp(-2*x))-1
+
+def swish(x):
+    return x*sigmoid(x)
