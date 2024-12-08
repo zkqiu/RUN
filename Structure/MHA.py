@@ -2,34 +2,41 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class MultiHeadAttention(nn.Module):
-    # input: embed_dim, num_head, dropout_rate
-    def __init__(self, embed_dim, num_head, dropout_rate=0.1):
-        super(MultiHeadAttention, self).__init__()
-        assert embed_dim % num_head == 0, "embed_dim must be divided by num_head"
-
-        self.embed_dim = embed_dim
-        self.num_head = num_head
-        self.head_dim = embed_dim // num_head
-
-        self.q_linear = nn.Linear(embed_dim, embed_dim)
-        self.k_linear = nn.Linear(embed_dim, embed_dim)
-        self.v_linear = nn.Linear(embed_dim, embed_dim)
-        self.fc = nn.Linear(embed_dim, embed_dim)
-
-        self.ln1 = nn.LayerNorm(embed_dim)
-        self.ln2 = nn.LayerNorm(embed_dim)
-
-        self.linear1 = nn.Linear(embed_dim, embed_dim)
-        self.linear2 = nn.Linear(embed_dim, embed_dim)
-        self.dropout = nn.Dropout(dropout_rate)
-
+class FFN(nn.Module):
+    def __init__(self, hidden_size):
+        super(FFN, self).__init__()
+        self.fc1 = nn.Linear(hidden_size, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.relu = nn.ReLU()
+        self.ln = nn.LayerNorm(hidden_size)
+    
+    def forward(self, x):
+        return self.ln(x+self.fc2(self.relu(self.fc1(x))))
+    
+class MultiHeadAttention(nn.Module):
+    # input: hidden_size, num_head, dropout_rate
+    def __init__(self, hidden_size, num_head, dropout_rate=0.1):
+        super(MultiHeadAttention, self).__init__()
+        assert hidden_size % num_head == 0, "hidden_size must be divided by num_head"
 
+        self.hidden_size = hidden_size
+        self.num_head = num_head
+        self.head_dim = hidden_size // num_head
+
+        self.q_linear = nn.Linear(hidden_size, hidden_size)
+        self.k_linear = nn.Linear(hidden_size, hidden_size)
+        self.v_linear = nn.Linear(hidden_size, hidden_size)
+        self.fc = nn.Linear(hidden_size, hidden_size)
+
+        self.ln = nn.LayerNorm(hidden_size)
+        self.dropout = nn.Dropout(dropout_rate)
+        
         self.scale = self.head_dim ** 0.5
+
+        self.ffn = FFN(hidden_size)
     
     def forward(self, x, mask=None):
-        # dim of query, key, val: (batch_size, seq_len, embed_dim)
+        # dim of query, key, val: (batch_size, seq_len, hidden_size)
         batch_size = x.size(0)
 
         Q = self.q_linear(x)
@@ -48,14 +55,11 @@ class MultiHeadAttention(nn.Module):
         attention = self.dropout(attention)
 
         context = torch.matmul(attention, V) # (batch_size, num_head, seq_len, head_dim)
-
-        context = context.transpose(1, 2).contiguous().view(batch_size, -1, self.embed_dim)
-
+        context = context.transpose(1, 2).contiguous().view(batch_size, -1, self.hidden_size)
         context = self.fc(context)
+        context = self.ln(context+x)
 
-        context = self.ln1(context+x)
-
-        context = self.ln2(self.linear2(self.relu(self.linear1(context)))+context)
+        context = self.ffn(context)
 
         return context
 
@@ -63,17 +67,17 @@ class MultiHeadAttention(nn.Module):
 if __name__ == "__main__":
     batch_size = 2
     seq_len = 5
-    embed_dim = 16
+    hidden_size = 16
     num_heads = 4
 
-    mha = MultiHeadAttention(embed_dim, num_heads)
-    x = torch.rand(batch_size, seq_len, embed_dim)
-    # key = torch.rand(batch_size, seq_len, embed_dim)
-    # value = torch.rand(batch_size, seq_len, embed_dim)
+    mha = MultiHeadAttention(hidden_size, num_heads)
+    x = torch.rand(batch_size, seq_len, hidden_size)
+    # key = torch.rand(batch_size, seq_len, hidden_size)
+    # value = torch.rand(batch_size, seq_len, hidden_size)
     mask = None
 
     output, attention = mha(x, mask)
-    print("Output shape:", output.shape)  # Expected: (batch_size, seq_len, embed_dim)
+    print("Output shape:", output.shape)  # Expected: (batch_size, seq_len, hidden_size)
     print("Attention shape:", attention.shape)  # Expected: (batch_size, num_heads, seq_len, seq_len)
 
 

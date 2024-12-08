@@ -3,7 +3,7 @@ import torch
 from torch import nn
 class GroupQueryAttention(torch.nn.Module):
     def __init__(self, hidden_size, num_heads, group_num):
-        super(MutiQueryAttention, self).__init__()
+        super(GroupQueryAttention, self).__init__()
         self.num_heads = num_heads
         self.head_dim = hidden_size // num_heads
         self.group_num = group_num

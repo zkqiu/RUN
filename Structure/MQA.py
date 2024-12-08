@@ -2,9 +2,20 @@
 import torch
 from torch import nn
 
-class MutiQueryAttention(torch.nn.Module):
+class FFN(nn.Module):
+    def __init__(self, hidden_size):
+        super(FFN, self).__init__()
+        self.fc1 = nn.Linear(hidden_size, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.ln = nn.LayerNorm(hidden_size)
+    
+    def forward(self, x):
+        return self.ln(x+self.fc2(self.relu(self.fc1(x))))
+
+class MultiQueryAttention(torch.nn.Module):
     def __init__(self, hidden_size, num_heads):
-        super(MutiQueryAttention, self).__init__()
+        super(MultiQueryAttention, self).__init__()
         self.num_heads = num_heads
         self.head_dim = hidden_size // num_heads
         
@@ -15,6 +26,9 @@ class MutiQueryAttention(torch.nn.Module):
         
         ## 输出线性层
         self.o_linear = nn.Linear(hidden_size, hidden_size)
+        self.ln = nn.LayerNorm(hidden_size)
+
+        self.ffn = FFN(hidden_size)
         
     def forward(self, hidden_state, attention_mask=None):
         batch_size = hidden_state.size()[0]
@@ -40,7 +54,9 @@ class MutiQueryAttention(torch.nn.Module):
         
         output = output.transpose(-1, -2).contiguous().view(batch_size, -1, self.head_dim * self.num_heads)
         
-        output = self.o_linear(output)
+        output = self.ln(self.o_linear(output)+hidden_state)
+
+        output = self.ffn(hidden_state)
         
         return output
         
@@ -52,3 +68,19 @@ class MutiQueryAttention(torch.nn.Module):
             return x.view(batch_size, -1, self.num_heads, self.head_dim).transpose(1,2)
         else:
             return x.view(batch_size, -1, head_num, self.head_dim).transpose(1,2)
+        
+if __name__ == "__main__":
+    batch_size = 2
+    seq_len = 5
+    hidden_size = 16
+    num_heads = 4
+
+    mqa = MultiQueryAttention(hidden_size, num_heads)
+    x = torch.rand(batch_size, seq_len, hidden_size)
+    # key = torch.rand(batch_size, seq_len, hidden_size)
+    # value = torch.rand(batch_size, seq_len, hidden_size)
+    mask = None
+
+    output, attention = mqa(x, mask)
+    print("Output shape:", output.shape)  # Expected: (batch_size, seq_len, hidden_size)
+    print("Attention shape:", attention.shape)  # Expected: (batch_size, num_heads, seq_len, seq_len)
