@@ -12,6 +12,7 @@ def calculate_dcg(scores, k=5):
         float: The DCG value for the top-k results.
     """
     scores = np.array(scores[:k])  # Consider only the top-k results
+    scores = 2**scores-1
     discounts = np.log2(np.arange(2, k + 2))  # Discount factors: log2(i+1)
     dcg = np.sum(scores / discounts)
     return dcg
@@ -36,7 +37,7 @@ def calculate_ndcg(scores, k=5):
 # Example usage
 if __name__ == "__main__":
     # Example relevance scores for a ranked list of results
-    relevance_scores = [3, 2, 3, 0, 1, 2]
+    relevance_scores = [0.3, 0.2, 0.3, 0, 0.1, 0.2]
 
     # Calculate the top-5 DCG
     top5_dcg = calculate_dcg(relevance_scores, k=5)
