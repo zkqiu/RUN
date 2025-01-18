@@ -1,15 +1,15 @@
 def can_form_line(edges):
     """
-    判断给定的边列表是否能构成一条直线
-    edges: List[List[int]], 每个元素形如[a,b]表示a指向b
-    return: bool, 是否能构成一条直线
+    Determine if the given list of edges can form a line
+    edges: List[List[int]], each element is [a,b] representing a directed edge from a to b
+    return: bool, whether the edges can form a line
     """
     if not edges:
         return True
     if len(edges) == 1:
         return True
         
-    # 构建图的邻接表
+    # Build adjacency list representation of the graph
     graph = {}
     in_degree = {}
     for a, b in edges:
@@ -20,48 +20,51 @@ def can_form_line(edges):
         graph[a].append(b)
         in_degree[b] += 1
     
-    # 找到起点(入度为0的点)
+    # Find start node (node with in-degree 0)
     start = None
     for a, _ in edges:
         if a not in in_degree:
             start = a
             break
     if start is None:
-        return False # 存在环
+        return False # Contains cycle
         
-    # 从起点开始遍历
+    # Traverse from start node
     curr = start
     path = [curr]
     while curr in graph:
         if len(graph[curr]) > 1:
-            return False # 一个点有多个后继
+            return False # Node has multiple successors
         curr = graph[curr][0]
         if curr in path:
-            return False # 存在环
+            return False # Contains cycle
         path.append(curr)
         
-    # 检查是否访问了所有点
+    # Check if all nodes are visited
     return len(path) == len(set([x for edge in edges for x in edge]))
 
-# 测试用例
+# Test cases
 def test_can_form_line():
-    # 测试用例1: 可以构成直线
+    # Test case 1: Can form a line
     assert can_form_line([[1,2], [2,3], [3,4]]) == True
     
-    # 测试用例2: 空列表
+    # Test case 2: Empty list
     assert can_form_line([]) == True
     
-    # 测试用例3: 单个边
+    # Test case 3: Single edge
     assert can_form_line([[1,2]]) == True
     
-    # 测试用例4: 存在环
+    # Test case 4: Contains cycle
     assert can_form_line([[1,2], [2,3], [3,1]]) == False
     
-    # 测试用例5: 一个点有多个后继
+    # Test case 5: Node has multiple successors
     assert can_form_line([[1,2], [1,3], [2,4]]) == False
     
-    # 测试用例6: 不连通
+    # Test case 6: Not connected
     assert can_form_line([[1,2], [3,4]]) == False
+
+    # Test case 7: 
+    assert can_form_line([[1,2], [2,3], [3,4], [4,1]]) == False
     
     print("All test cases passed!")
 
