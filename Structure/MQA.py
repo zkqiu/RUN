@@ -30,12 +30,12 @@ class MultiQueryAttention(torch.nn.Module):
 
         self.ffn = FFN(hidden_size)
         
-    def forward(self, hidden_state, attention_mask=None):
-        batch_size = hidden_state.size()[0]
+    def forward(self, x, attention_mask=None):
+        batch_size = x.size()[0]
         
-        query = self.q_linear(hidden_state)
-        key = self.k_linear(hidden_state)
-        value = self.v_linear(hidden_state)
+        query = self.q_linear(x)
+        key = self.k_linear(x)
+        value = self.v_linear(x)
         
         query = self.split_head(query)
         key = self.split_head(key, 1)
@@ -54,9 +54,9 @@ class MultiQueryAttention(torch.nn.Module):
         
         output = output.transpose(-1, -2).contiguous().view(batch_size, -1, self.head_dim * self.num_heads)
         
-        output = self.ln(self.o_linear(output)+hidden_state)
+        output = self.ln(self.o_linear(output) + x)
 
-        output = self.ffn(hidden_state)
+        output = self.ffn(x)
         
         return output
         
