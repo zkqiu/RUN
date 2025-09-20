@@ -1,0 +1,12 @@
+[
+    {"text": "这部电影真的很棒，我非常喜欢！", "label": "positive"},
+    {"text": "剧情太无聊了，浪费时间。", "label": "negative"},
+    {"text": "演员表演很出色，值得一看。", "label": "positive"},
+    {"text": "特效做得不错，但故事一般。", "label": "neutral"},
+    {"text": "强烈推荐这部电影！", "label": "positive"},
+    {"text": "完全看不懂在讲什么。", "label": "negative"},
+    {"text": "还可以，中规中矩。", "label": "neutral"},
+    {"text": "非常失望，不推荐观看。", "label": "negative"},
+    {"text": "画面很美，音乐也很好听。", "label": "positive"},
+    {"text": "一般般，没有特别出彩的地方。", "label": "neutral"}
+]

@@ -16,11 +16,11 @@ class MoELayer(nn.Module):
     
     def forward(self, x):
         # 计算专家的得分
-        gate_scores = self.gating_network(x)  # Shape: (batch_size, num_experts)
-        gate_probs = F.softmax(gate_scores, dim=-1)  # Shape: (batch_size, num_experts)
+        gate_scores = self.gating_network(x)  # Shape: (sequence_length, num_experts)
+        gate_probs = F.softmax(gate_scores, dim=-1)  # Shape: (sequence_length, num_experts)
         
         # 获取 Top-k 的专家索引和对应权重
-        topk_weights, topk_indices = torch.topk(gate_probs, self.top_k, dim=-1)  # Shape: (batch_size, top_k)
+        topk_weights, topk_indices = torch.topk(gate_probs, self.top_k, dim=-1)  # Shape: (sequence_length, top_k)
         
         # 初始化输出
         output = torch.zeros(x.size(0), self.experts[0].out_features, device=x.device)
@@ -41,7 +41,7 @@ class MoELayer(nn.Module):
 # 示例使用
 if __name__ == "__main__":
     # 定义输入参数
-    batch_size = 4
+    sequence_length = 4
     input_dim = 16
     output_dim = 8
     num_experts = 3
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     moe_layer = MoELayer(input_dim=input_dim, output_dim=output_dim, num_experts=num_experts, top_k=top_k)
     
     # 创建示例输入
-    x = torch.randn(batch_size, input_dim)
+    x = torch.randn(sequence_length, input_dim)
     
     # 前向传播
     output = moe_layer(x)
