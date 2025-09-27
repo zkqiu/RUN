@@ -1,0 +1,34 @@
+# SFT LLM训练依赖包
+
+# 核心依赖
+torch>=2.0.0
+transformers>=4.35.0
+datasets>=2.14.0
+accelerate>=0.24.0
+
+# 数据处理
+numpy>=1.24.0
+pandas>=2.0.0
+jsonlines>=3.1.0
+
+# 训练优化
+deepspeed>=0.12.0
+bitsandbytes>=0.41.0
+
+# 日志和监控
+tensorboard>=2.14.0
+wandb>=0.15.0
+
+# 工具库
+tqdm>=4.65.0
+rich>=13.0.0
+colorama>=0.4.6
+
+# 可选：量化支持
+# auto-gptq>=0.4.0
+# optimum>=1.14.0
+
+# 可选：评估指标
+# rouge-score>=0.1.2
+# nltk>=3.8.0
+# sacrebleu>=2.3.0
